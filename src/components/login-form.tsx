@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import Link from "next/link";
 
 export function LoginForm() {
   const router = useRouter();
@@ -37,7 +38,15 @@ export function LoginForm() {
         <Input type="email" id="email" name="email" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="name">Password</Label>
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="name">Password</Label>
+          <Link
+            href="/auth/forgor-password"
+            className="text-sm italic text-muted-foreground hover:text-foreground"
+          >
+            Forgot Password?
+          </Link>
+        </div>
         <Input type="password" id="password" name="password" />
       </div>
 
