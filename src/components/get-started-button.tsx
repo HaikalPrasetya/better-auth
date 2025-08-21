@@ -3,6 +3,7 @@
 import { useSession } from "@/lib/auth-client";
 import { Button } from "./ui/button";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export function GetStartedButton() {
   const { data: session, isPending } = useSession();
@@ -23,7 +24,17 @@ export function GetStartedButton() {
         <Link href={href}>Get Started</Link>
       </Button>
 
-      {session && <p>Welcome back, {session.user.name}! 👋</p>}
+      {session && (
+        <p className="flex items-center gap-2">
+          <span
+            className={cn(
+              "size-4 rounded-full animate-pulse",
+              session.user.role === "USER" ? "bg-blue-600" : "bg-red-600"
+            )}
+          />
+          Welcome back, {session.user.name}! 👋
+        </p>
+      )}
     </div>
   );
 }

@@ -5,6 +5,9 @@ import { nextCookies } from "better-auth/next-js";
 import { hashPassword, verifyPassword } from "./argon2";
 import prisma from "./prisma";
 import { getValidDomain, normalizeName } from "./utils";
+import { UserRole } from "@/generated/prisma";
+import { admin } from "better-auth/plugins";
+import { ac, roles } from "@/lib/permissions";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -17,6 +20,21 @@ export const auth = betterAuth({
     password: {
       hash: hashPassword,
       verify: verifyPassword,
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(";") ?? [];
+
+          if (ADMIN_EMAILS.includes(user.email)) {
+            return { data: { ...user, role: "ADMIN" } };
+          }
+
+          return { data: user };
+        },
+      },
     },
   },
   hooks: {
@@ -45,6 +63,14 @@ export const auth = betterAuth({
       }
     }),
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: ["USER", "ADMIN"] as Array<UserRole>,
+        input: false,
+      },
+    },
+  },
   session: {
     expiresIn: 30 * 24 * 60 * 60,
   },
@@ -53,7 +79,15 @@ export const auth = betterAuth({
       generateId: false,
     },
   },
-  plugins: [nextCookies()],
+  plugins: [
+    nextCookies(),
+    admin({
+      defaultRole: UserRole.USER,
+      adminRoles: [UserRole.ADMIN],
+      ac,
+      roles,
+    }),
+  ],
 });
 
 export type ErrorCode = keyof typeof auth.$ERROR_CODES | "UNKOWN";
